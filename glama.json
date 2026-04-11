@@ -1,0 +1,160 @@
+{
+  "$schema": "https://glama.ai/mcp/schemas/server.json",
+  "maintainers": [
+    "vertaa"
+  ],
+  "tools": [
+    {
+      "name": "analyze_component",
+      "description": "[session] Static analysis of a single UI component's source code (HTML / JSX / Vue SFC / Svelte / Angular template) for UX and accessibility issues — NO browser, NO network request. Returns category-scored findings (semantic HTML, ARIA usage, focus management, label association, color-contrast hints from inline styles, keyboard operability), framework-specific lint feedback, and suggested fixes. Use when you have a component code snippet and want fast pre-commit feedback without running a full audit. DISAMBIGUATION: analyze_component is single-component static; audit_repo scans an entire repository directory tree; audit_url runs the full rule engine against a live rendered page."
+    },
+    {
+      "name": "audit_a11y",
+      "description": "[a11y] Run a multi-engine accessibility audit on a URL.\n\nEngines used: axe-core, AccessLint, and custom VertaaUX analyzers.\nReturns normalised WCAG findings with machine-actionable fix suggestions.\n\nOptionally saves results as a named baseline for later diffing with diff_a11y."
+    },
+    {
+      "name": "audit_artifact",
+      "description": "[audit] Audit from captured browser artifacts (no live URL required). Use when you have a debugging artifact from a CI run or a customer bug report and want UX/a11y/perf analysis without re-running the browser.\n\nSUPPORTED artifact types:\n- `har` — HTTP Archive (.har) files: analyzes response times, failed requests, large payloads, missing security headers (CSP, HSTS, X-Frame-Options). Exported from DevTools Network tab or Playwright.\n- `lighthouse` — Lighthouse report JSON: extracts accessibility and perf findings from a pre-computed Lighthouse run and normalizes them into the VertaaUX finding shape.\n\nUNSUPPORTED (returns INVALID_PARAMS):\n- `playwright-trace` — kept in the enum for forward compatibility, but trace replay requires a full Playwright runtime which the MCP server does not bundle. The error response includes a clear fallback pointer to audit_url."
+    },
+    {
+      "name": "audit_repo",
+      "description": "[audit] Audit a local codebase for UX patterns and accessibility issues.\n\nPerforms static analysis on:\n- React/Vue/Svelte components (JSX/TSX/Vue/Svelte files)\n- HTML templates\n- Checks: missing alt text, unlabeled buttons/inputs/links, placeholder-only labels\n\nReturns findings grouped by file with severity counts. For live browser audits, use audit_url instead."
+    },
+    {
+      "name": "audit_url",
+      "description": "[audit] Run a UX & accessibility audit on a deployed website URL.\n\nReturns a summary with:\n- Total finding count and severity breakdown\n- Top 5 issues by severity\n- Change tracking vs baseline (if provided)\n\nUse get_findings() to retrieve full finding details after audit completes.\n\nNote: Offline mode (localhost/file:// URLs) currently performs limited static analysis only. For full audits, deploy to a staging URL."
+    },
+    {
+      "name": "capture_screenshot",
+      "description": "[session] Capture a screenshot of a URL and return a hosted screenshot URL. IMPORTANT: this is implemented via a full audit run under the hood, so it CONSUMES ONE AUDIT from your monthly quota (same as audit_url). It's not a lightweight headless-browser snapshot. Use mode='basic' for the cheapest capture. Returns the screenshot URL plus the full audit result — useful when you want both a visual and an audit in one call. Viewport, fullPage, highlightIssues, and waitForSelector are informational hints to the engine but not strictly enforced. If you ONLY need a screenshot with no audit data, there is no cheaper alternative currently — see `doctor` output to check remaining audit quota first."
+    },
+    {
+      "name": "compare_competitors",
+      "description": "[session] Audit your site and N competitor URLs in parallel, then return a side-by-side UX metrics comparison: overall score deltas, per-category scores (usability / clarity / ia / accessibility / conversion / semantic / keyboard), top-5 differentiators (categories where you beat or lag each competitor), and optional industry benchmark context (ecommerce / saas / fintech / healthcare / media / general). Runs N+1 full audits under the hood — consumes (N+1) audit quota units. Use for positioning analysis, pitch decks, or quarterly competitive scans. DISAMBIGUATION: for a simple two-audit comparison by ID, use diff_audits (free, no quota); for live head-to-head analysis of sites you don't have audit IDs for, use this."
+    },
+    {
+      "name": "create_pr_comment",
+      "description": "[pr] PER-FILE patch review comment — generates a GitHub PR comment with in-line suggestion blocks for a set of accessibility patches targeting ONE file. Returns markdown ready to post via `gh pr comment` or the GitHub API. Patches are ordered by severity (critical first). One comment per file. DISAMBIGUATION: use format_pr_comment for an audit-level SUMMARY (score + delta, no code), create_pr_comment for per-file PATCH REVIEW suggestions (this tool), and generate_pr to actually OPEN the PR."
+    },
+    {
+      "name": "create_schedule",
+      "description": "[schedule] Create a recurring audit that runs automatically on a cron schedule. Use for continuous monitoring: daily a11y regression checks, weekly competitor diffs, post-deploy smoke audits via GitHub Actions webhook trigger. Returns the new schedule's id, next_run_at timestamp, and active status. Configure alerts via alert_on_fail / alert_on_score_drop + score_threshold to get notified when audit runs fail or scores drop below a threshold. Alerts are delivered via the optional webhook_url (falls back to the account's default webhook) and/or email_recipients list. Schedules count against the monthly audit quota based on the mode and frequency."
+    },
+    {
+      "name": "create_webhook",
+      "description": "[webhook] Register an HTTPS webhook endpoint to receive audit event notifications (audit.completed, audit.failed, etc.). The account may register multiple webhooks; each event fires all matching endpoints. Outgoing webhook requests are signed with HMAC-SHA256 using the provided secret — verify the `X-Vertaaux-Signature` header on your receiver. Returns the new webhook's id, url, created_at, and active status. Use list_webhooks to check for duplicates before creating. The URL must be HTTPS and reachable from the VertaaUX network; localhost/private-IP URLs are rejected by SSRF protection."
+    },
+    {
+      "name": "delete_schedule",
+      "description": "[schedule] Permanently delete an audit schedule by ID. Destructive: future scheduled runs will be cancelled and the schedule row removed. Prefer update_schedule with enabled=false if you want to pause and resume later. Look up the ID via list_schedules. Returns { deleted: true, id }."
+    },
+    {
+      "name": "delete_webhook",
+      "description": "[webhook] Permanently delete a webhook registration by ID. Destructive: no soft-delete, future events will not be delivered to this URL. Look up the ID via list_webhooks first. Returns { deleted: true, id } on success."
+    },
+    {
+      "name": "diff_a11y",
+      "description": "[a11y] SECONDARY a11y diff — named-baseline variant. Compare a fresh accessibility audit against a NAMED baseline captured earlier via audit_a11y with baseline_name set. Returns: new regressions, fixed issues, unchanged findings, and a net-change summary.\n\nDISAMBIGUATION: prefer diff_audits for general regression tracking — it works with any two audit IDs and has full cross-category coverage (usability/clarity/ia/accessibility/conversion/semantic/keyboard). diff_a11y is only the right choice when you've EXPLICITLY created a named a11y baseline via audit_a11y; otherwise diff_audits is the primary diff tool."
+    },
+    {
+      "name": "diff_audits",
+      "description": "[audit] PRIMARY diff tool — compare any two audits by ID. Computes a delta between two audits: new findings, fixed findings, regressed findings, and per-category score delta (usability/clarity/ia/accessibility/conversion/semantic/keyboard). Blocks cross-major engine version comparisons unless force_compare=true (prevents spurious deltas from engine upgrades). Use this for: regression tracking, before/after deploy verification, or CI delta reports. DISAMBIGUATION: diff_audits uses audit IDs directly (the full-coverage new path); diff_a11y operates on NAMED a11y baselines stored via the dedicated a11y baseline system (use it only if you explicitly created a named a11y baseline — otherwise stick with diff_audits)."
+    },
+    {
+      "name": "doctor",
+      "description": "[session] Run a diagnostic on the MCP client's ability to reach VertaaUX: auth, network, quota, and engine availability. Never throws — every check degrades to ok:false with an error field."
+    },
+    {
+      "name": "explain_finding",
+      "description": "[findings] Get detailed explanation and evidence for a specific finding.\n\nReturns:\n- Full element HTML and attributes\n- Screenshot URL (if available)\n- WCAG criteria violated\n- Why this matters (user impact)\n- Repro steps\n- Fix guidance with before/after code example\n\nUse this for deep-dive into a finding after getting summary from audit_url."
+    },
+    {
+      "name": "explain_issue",
+      "description": "[session] Transform a raw audit issue object into developer-friendly guidance: plain-language explanation of the WCAG rule, why it matters for real users, a concrete code-level fix, and links to canonical references. Unlike explain_finding (which looks up a finding by ID from the backend), explain_issue accepts an INLINE issue object you already have — use it when you've already fetched an audit result and want to format a specific issue for display or for an LLM context prompt. Takes an issue object literal, not an ID. No network call."
+    },
+    {
+      "name": "format_pr_comment",
+      "description": "[pr] AUDIT-LEVEL PR comment formatter — takes an existing audit_id and renders the same GitHub PR-comment markdown artifact the VertaaUX GitHub Action emits: overall score, category breakdown, top findings, and (optionally) a baseline delta section when baseline_audit_id is provided. Returns markdown you post via `gh pr comment` or the GitHub API.\n\nDISAMBIGUATION (three PR-related tools):\n- format_pr_comment = audit-level SUMMARY. Input: audit_id. Output: score + delta summary markdown.\n- create_pr_comment = per-FILE patch review. Input: file_path + array of suggest_fix/generate_patch patches. Output: markdown with GitHub suggestion blocks for each patch.\n- generate_pr = actually OPENS a GitHub pull request with the patches applied atomically via Git Trees API."
+    },
+    {
+      "name": "generate_patch",
+      "description": "[fix] LEGACY fix generator — issue-based, no framework detection. Generates an accessibility fix patch for a specific issue from an audit, returning a search-and-replace patch with confidence score and explanation. DISAMBIGUATION: prefer `suggest_fix` for new agent code — it's the Phase 114 framework-aware replacement that uses the MCP-native `finding_id`/`audit_id` namespace and emits JSX-idiomatic patches per framework. This tool still uses legacy `job_id`/`issue_id` and ships HTML-attribute patches regardless of the target file's framework. Keep using it only if you're consuming legacy audit IDs."
+    },
+    {
+      "name": "generate_pr",
+      "description": "[pr] ACTUALLY OPEN a draft GitHub pull request with accessibility fix patches applied. Applies N patches ATOMICALLY via the Git Trees API: either all N files change in a single commit, or zero files change. Overlapping patches are refused with a structured CONFLICT error (conflict graph check); patches that produce unparseable JS/TS/JSX/Vue/Svelte are refused with a structured AST_INVALID error (Babel / vue-eslint-parser / svelte/compiler gate). Input patches come from suggest_fix (framework-aware) or generate_patch (legacy).\n\nRequires GITHUB_TOKEN environment variable for GitHub API access. If no GitHub access, returns patch content that can be applied locally (local_only=true).\n\nIMPORTANT: Creates DRAFT PR only — human review required before merge.\n\nDISAMBIGUATION (three PR-related tools):\n- generate_pr = ACTUALLY OPENS a draft pull request on GitHub with patches applied atomically (this tool).\n- format_pr_comment = audit-level SUMMARY markdown (score + delta) you post manually via gh pr comment.\n- create_pr_comment = per-FILE patch REVIEW markdown with inline GitHub suggestion blocks, also posted manually."
+    },
+    {
+      "name": "generate_sarif",
+      "description": "[audit] Convert a VertaaUX audit into a SARIF 2.1.0 document suitable for GitHub Code Scanning. Returns the sarif log plus size warnings (never throws on oversize)."
+    },
+    {
+      "name": "get_audit",
+      "description": "[audit] Fetch the status and (when completed) full results of a single audit job by ID. Returns status (queued|running|completed|failed), progress 0-100, scores object (7 categories), and the issues array once status='completed'. Poll this after calling run_audit with wait=false, or audit_url with wait=false. Shares the same ID namespace across audit_url/run_audit/run_llm_audit/audit_a11y responses (the returned job_id / audit_id / id field is interchangeable)."
+    },
+    {
+      "name": "get_engines",
+      "description": "[quota] List the audit engine versions available on this account. Returns semver-tagged engines (e.g. \"4.0.0\") plus a \"latest\" alias, with release notes per version. Use to pin audits to a specific engine version for reproducible deltas, or to discover newer analyzers."
+    },
+    {
+      "name": "get_findings",
+      "description": "[findings] Get findings from a completed audit with filtering.\n\nUse this after audit_url/audit_repo/audit_artifact to get detailed findings.\nSupports pagination and filtering by severity, rule, or change status."
+    },
+    {
+      "name": "get_quota",
+      "description": "[quota] Get the authenticated account's current API quota, tier, and usage counters. Returns the free/pro tier, audit requests remaining in the current billing window, reset timestamp, and feature flags. Call this before starting a batch of audits to avoid mid-run quota errors."
+    },
+    {
+      "name": "get_schedule",
+      "description": "[schedule] Fetch the full configuration of a single audit schedule by ID, including cron expression, target URL, audit mode, enabled status, alert config (alert_on_fail, alert_on_score_drop, score_threshold), notification channels (webhook_url, email_recipients), last_run_at, and next_run_at timestamps. Use list_schedules first to look up the ID. Read-only; use update_schedule to modify."
+    },
+    {
+      "name": "list_audits",
+      "description": "[audit] Paginate through the authenticated account's audit history, newest first. Returns an array of audit metadata rows: id, url, mode, status, created_at, completed_at, and summary scores (when available). Use offset+limit for pagination. Use status filter to narrow to a specific state — e.g. status='completed' to find a prior audit to use as a baseline_id for diff_audits / verify_fixes, or status='failed' to investigate issues. Read-only, idempotent, counts against API request quota but not audit quota."
+    },
+    {
+      "name": "list_schedules",
+      "description": "[schedule] List all audit schedules on the authenticated account. Returns schedule ID, target URL, cron expression, audit mode, enabled status, alert configuration, and the next scheduled run time. Use before update_schedule or delete_schedule to look up the ID, or to audit which URLs are being monitored."
+    },
+    {
+      "name": "list_webhooks",
+      "description": "[webhook] List all webhooks registered on the authenticated account. Returns webhook ID, URL, event types subscribed (e.g. audit.completed, audit.failed), active status, and last-delivery timestamp. Use before create_webhook to check for duplicates, or before delete_webhook to look up the ID."
+    },
+    {
+      "name": "policy_check",
+      "description": "[audit] Evaluate a `vertaa.policy.yml` document against an audit and return pass/fail with structured failure reasons. Mirrors the threshold evaluator used by the VertaaUX GitHub Action so CI and agent-driven checks emit identical verdicts.\n\nPOLICY SCHEMA (inline YAML string):\n```yaml\n# All keys optional; any omitted threshold is treated as \"no requirement\".\nmin_scores:              # overall + per-category score floors (0-100)\n  overall: 80\n  accessibility: 90\n  usability: 75\nmax_issues:              # cap findings by severity\n  critical: 0\n  serious: 3\n  moderate: 10\n  minor: 50\nrequired_rules: []       # WCAG rule IDs that MUST pass (e.g. \"color-contrast\")\nforbidden_rules: []      # WCAG rule IDs that MUST NOT fail\nfail_fast: true          # stop at first violation (default: false)\n```\n\nReturns `{ passed: boolean, violations: [{rule, expected, actual, severity}...], evaluated_at }`. Use in CI to gate PRs, or in an agent loop to decide whether to ship."
+    },
+    {
+      "name": "run_audit",
+      "description": "[audit] DEPRECATED: Use audit_url instead. Run a UX & accessibility audit on a website URL"
+    },
+    {
+      "name": "run_llm_audit",
+      "description": "[audit] Run an LLM-based UX audit of a URL using the provider-agnostic VertaaUX LLM adapter (Mistral, OpenAI, or other configured providers). Unlike the rule-based audit_url tool, this uses an LLM to produce qualitative observations on hero clarity, messaging, copy tone, and conversion nudges — things heuristic analyzers miss. Returns a narrative summary plus structured observations. Use when you want conversion/copy/brand feedback; use audit_url for rule-based WCAG/a11y/usability analysis. Consumes LLM credits from your account (separate from the audit quota used by audit_url)."
+    },
+    {
+      "name": "run_verification_suite",
+      "description": "[audit] PRE-deploy patch verification: test a proposed accessibility fix (search/replace patch + CSS selector) against a live URL in a sandboxed browser BEFORE you commit or merge. Runs before/after axe-core audits against the target element and returns score delta + whether the target rule passes. Use this inside a fix loop to validate suggest_fix / generate_patch output before calling generate_pr. DISAMBIGUATION: this tool tests a proposed patch in isolation; once the fix is actually shipped to production, use verify_fixes instead (URL-based comparison to a baseline audit, no patch payload needed)."
+    },
+    {
+      "name": "stream_findings",
+      "description": "[findings] Incrementally consume findings from an ALREADY-COMPLETED audit as NDJSON. NOT for live streaming of an in-progress audit — the underlying endpoint returns HTTP 400 until `audit.status === \"completed\"`. Use audit_url with wait=true (or poll get_audit) to reach the completed state first, then call this tool to page through findings without materializing them all in memory. Respects AbortSignal for early termination, caps memory at a 100-item ring buffer (drops oldest when agent falls behind), and enforces a 120-second hard timeout. For live progress while an audit runs, pass _meta.progressToken to audit_url and listen for notifications/progress events."
+    },
+    {
+      "name": "suggest_fix",
+      "description": "[fix] PRIMARY fix generator — framework-aware, finding-based. Generate a targeted search/replace code patch to fix an accessibility finding. Detects the target file's framework (React/Next/Vue/Angular/Svelte/Nuxt via the nearest package.json) and emits idiomatic patches (JSX rewrites className/htmlFor for React, HTML attrs preserved elsewhere) with a framework_confidence field.\n\nSupports:\n- Single finding (default): pass finding_id + audit_id\n- Batch mode: pass multiple finding_ids to fix related findings together\n\nReturns search/replace patch + confidence score + explanation + framework_confidence. For high-risk fixes, needs_human_review will be true.\n\nDISAMBIGUATION vs generate_patch: suggest_fix is the NEW (Phase 114) framework-aware tool and uses `finding_id`/`audit_id` (the new MCP-native ID space from Phase 109). generate_patch is the older issue/job ID variant that predates framework detection — use suggest_fix for new agent code."
+    },
+    {
+      "name": "triage_finding",
+      "description": "[findings] Set the triage state of a finding (open, in_progress, resolved, wont_fix) with an optional note."
+    },
+    {
+      "name": "update_schedule",
+      "description": "[schedule] Update an existing audit schedule. All fields except `id` are optional — omit any field to leave it unchanged (partial update). Use list_schedules to look up the ID. Common uses: pause a schedule via enabled=false, change cadence via cron_expression, add score-drop alerts via alert_on_score_drop + score_threshold."
+    },
+    {
+      "name": "verify_fixes",
+      "description": "[audit] POST-DEPLOY fix verification. Use this AFTER you've merged/deployed accessibility fixes to a live URL and want to prove they actually landed in production. Runs a fresh audit against the URL and compares to a baseline audit you captured earlier, partitioning findings into:\n  - fixed: present in baseline, absent in current (= your fix worked)\n  - still_broken: present in both (= fix didn't land or didn't solve it)\n  - regressions: severity worsened since baseline (stable findings only)\n  - new_issues: new findings since baseline (stable findings only)\n  - unknown: flaky / retryable findings that are NOT counted against fixes\n\nReturns verification_status: \"all_fixed\" | \"partial\" | \"regressed\" | \"budget_exhausted\" | \"unknown\". Budget-capped at 3 iterations per (session, baseline_audit_id) by default — prevents infinite fix loops. Exhausting budget returns \"budget_exhausted\" with remaining_iterations=0.\n\nDISAMBIGUATION:\n- verify_fixes = post-deploy, URL-based, compares to baseline audit. No patch payload.\n- run_verification_suite = PRE-deploy, patch-payload based. Tests a proposed search/replace patch + selector in isolation BEFORE you commit. Use it inside a fix loop to validate suggest_fix output, then verify_fixes once the fix is shipped."
+    }
+  ]
+}

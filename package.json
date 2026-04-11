@@ -1,0 +1,52 @@
+{
+  "name": "@vertaaux/mcp-server",
+  "version": "1.1.1",
+  "description": "MCP server for VertaaUX.ai — run UX & accessibility audits from your LLM or IDE",
+  "mcpName": "io.github.PetriLahdelma/vertaaux-mcp",
+  "type": "module",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "generate:manifests": "tsc && node dist/scripts/generate-registry-manifests.js",
+    "_comment_generate": "compiled script lives at dist/scripts/ because rootDir is ./src",
+    "prepublishOnly": "npm run generate:manifests && npm run test",
+    "start": "node dist/index.js",
+    "dev": "tsc && node dist/index.js",
+    "start:http": "node dist/http.js",
+    "dev:http": "tsc && node dist/http.js",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest --coverage"
+  },
+  "keywords": [
+    "mcp",
+    "vertaa",
+    "ux",
+    "audit",
+    "accessibility",
+    "a11y"
+  ],
+  "author": "Vertaa",
+  "license": "MIT",
+  "dependencies": {
+    "@babel/parser": "^7.29.2",
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "@octokit/rest": "^22.0.1",
+    "@vertaaux/sdk": "^2.0.0",
+    "dotenv": "^17.3.1",
+    "minimatch": "^10.2.5",
+    "svelte": "^5.55.2",
+    "vue-eslint-parser": "^10.4.0",
+    "yaml": "^2.5.0",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@types/node": "^25.5.0",
+    "@types/node-fetch": "^2.6.13",
+    "@vitest/coverage-v8": "^4.0.15",
+    "nock": "^14.0.12",
+    "node-fetch": "^2.7.0",
+    "typescript": "^6.0.2",
+    "vitest": "^4.1.2"
+  }
+}
