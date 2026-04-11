@@ -1,10 +1,7 @@
 <div align="center">
 
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="banner-dark.svg" />
-  <source media="(prefers-color-scheme: light)" srcset="banner-light.svg" />
-  <img src="banner-light.svg" alt="VERTAAUX" width="800" />
-</picture>
+<img src="banner-light.svg#gh-light-mode-only" alt="VERTAAUX" width="600" />
+<img src="banner-dark.svg#gh-dark-mode-only" alt="VERTAAUX" width="600" />
 
 [![npm](https://img.shields.io/npm/v/%40vertaaux%2Fmcp-server?label=%40vertaaux%2Fmcp-server)](https://www.npmjs.com/package/@vertaaux/mcp-server)
 [![MCP Registry](https://img.shields.io/badge/MCP_Registry-listed-0f172a)](https://registry.modelcontextprotocol.io)
