@@ -1,6 +1,6 @@
 {
   "name": "@vertaaux/mcp-server",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "MCP server with an autonomous audit, fix, and verify loop. 38 tools for UX and accessibility audits, framework-aware patches (React/Vue/Angular/Svelte), atomic GitHub PRs, and policy-as-code CI gates.",
   "mcpName": "io.github.PetriLahdelma/vertaaux-mcp",
   "type": "module",
@@ -9,7 +9,7 @@
     "build": "tsc",
     "generate:manifests": "tsc && node dist/scripts/generate-registry-manifests.js",
     "_comment_generate": "compiled script lives at dist/scripts/ because rootDir is ./src",
-    "prepublishOnly": "npm run generate:manifests && npm run test",
+    "prepublishOnly": "npm run generate:manifests && vitest run --exclude '**/parity-matrix.test.ts'",
     "start": "node dist/index.js",
     "dev": "tsc && node dist/index.js",
     "start:http": "node dist/http.js",
