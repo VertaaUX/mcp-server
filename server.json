@@ -1,7 +1,7 @@
 {
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-09-29/server.schema.json",
   "name": "io.github.PetriLahdelma/vertaaux-mcp",
-  "description": "MCP server with an autonomous audit, fix, and verify loop. 38 tools for UX and accessibility audits, framework-aware patches (React/Vue/Angular/Svelte), atomic GitHub PRs, and policy-as-code CI gates.",
+  "description": "Autonomous UX and a11y audit, fix, and verify loop. 38 tools, framework-aware patches.",
   "version": "1.2.1",
   "packages": [
     {

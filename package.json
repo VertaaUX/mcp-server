@@ -2,6 +2,7 @@
   "name": "@vertaaux/mcp-server",
   "version": "1.2.1",
   "description": "MCP server with an autonomous audit, fix, and verify loop. 38 tools for UX and accessibility audits, framework-aware patches (React/Vue/Angular/Svelte), atomic GitHub PRs, and policy-as-code CI gates.",
+  "mcpRegistryDescription": "Autonomous UX and a11y audit, fix, and verify loop. 38 tools, framework-aware patches.",
   "mcpName": "io.github.PetriLahdelma/vertaaux-mcp",
   "type": "module",
   "main": "dist/index.js",
