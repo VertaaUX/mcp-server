@@ -246,3 +246,31 @@ unit tests:          17/17 PASS
 ────────────────────────────
 TOTAL:              101/104 PASS (97.1%)
 ```
+
+---
+
+## Addendum (2026-05-06): Description rewrite + Feb 17 issue check-in
+
+**Tool count:** 27 → 38 (added in v4.2 Agentic MCP Evolution: verify_fixes, suggest_fix framework detection, generate_pr atomic Git Trees, run_verification_suite pre-deploy gate, plus a11y/schedule/webhook expansions).
+
+**Description rewrite (this session):**
+- All 38 descriptions rewritten to a tight `[category] one-liner + vs other_tool + critical params` pattern.
+- Total description chars: 21,000 to 9,735 (54% reduction).
+- Drift gate snapshot test passes (5/5).
+- Full mcp-server vitest suite: 285/286 pass; the single failure (`parity-matrix.test.ts`) is pre-existing, unrelated, and reproduces with these changes stashed.
+
+**Feb 17 critical-issue check-in:**
+
+| # | Issue | Status |
+|---|---|---|
+| 1 | Version mismatch (package.json 1.0.0 vs manifest 2.0.0) | Fixed (both at 1.1.1) |
+| 2 | Missing `types` field in package.json | Still present (`dist/index.d.ts` not emitted; needs `declaration: true` in tsconfig + types field) |
+| 3 | No smoke-test script | Still present (no `npm run smoke` or no-API-key boot path) |
+| 4 | ChangeStatusSchema description mismatch | Neutralized (description rewrite no longer references the wrong values) |
+
+**Updated DX score (provisional, narrow re-test):** 8.0/10. Issues 2 and 3 still hold the score back; the description rewrite should lift agent-side tool-selection accuracy (untested in this addendum, requires a real-agent eval).
+
+**Recommended next:**
+- Enable `declaration: true` in `mcp-server/tsconfig.json` and add `"types": "dist/index.d.ts"` to package.json (closes Feb 17 issue #2).
+- Add a `npm run smoke` script that boots the server without an API key and exits 0 if the tool registry loads (closes Feb 17 issue #3).
+- Real-agent eval of the new descriptions (Claude Desktop or Cursor): pick a known finding, observe whether the agent reaches `suggest_fix` then `generate_pr` correctly without prompting hints.
