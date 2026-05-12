@@ -1,0 +1,23 @@
+# mcp-publisher login writes these to cwd. Never commit, never publish.
+.mcpregistry_*
+
+# Local env
+.env
+.env.local
+.env.*.local
+
+# Build output
+dist/
+*.tsbuildinfo
+
+# Generic secret patterns
+*.pem
+*.key
+*.p12
+*.pfx
+*.token
+
+# Editor / OS
+.DS_Store
+.idea/
+*.swp
