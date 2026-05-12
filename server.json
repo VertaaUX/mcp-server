@@ -2,12 +2,12 @@
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-09-29/server.schema.json",
   "name": "io.github.PetriLahdelma/vertaaux-mcp",
   "description": "Autonomous UX and a11y audit, fix, and verify loop. 38 tools, framework-aware patches.",
-  "version": "1.2.1",
+  "version": "1.2.2",
   "packages": [
     {
       "registryType": "npm",
       "identifier": "@vertaaux/mcp-server",
-      "version": "1.2.1",
+      "version": "1.2.2",
       "transport": {
         "type": "stdio"
       },
@@ -22,7 +22,7 @@
     }
   ],
   "repository": {
-    "url": "https://github.com/PetriLahdelma/vertaa",
+    "url": "https://github.com/VertaaUX/mcp-server",
     "source": "github"
   }
 }
