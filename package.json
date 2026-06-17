@@ -36,24 +36,35 @@
   "author": "Vertaa",
   "license": "MIT",
   "dependencies": {
-    "@babel/parser": "^7.29.2",
+    "@babel/parser": "^7.29.7",
     "@modelcontextprotocol/sdk": "^1.29.0",
     "@octokit/rest": "^22.0.1",
-    "@vertaaux/sdk": "^2.0.0",
-    "dotenv": "^17.3.1",
+    "@vertaaux/sdk": "^2.1.1",
+    "dotenv": "^17.4.2",
     "minimatch": "^10.2.5",
-    "svelte": "^5.55.2",
-    "vue-eslint-parser": "^10.4.0",
-    "yaml": "^2.5.0",
-    "zod": "^4.3.6"
+    "svelte": "^5.56.3",
+    "vue-eslint-parser": "^10.4.1",
+    "yaml": "^2.9.0",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
-    "@types/node": "^25.5.0",
+    "@types/node": "^25.9.3",
     "@types/node-fetch": "^2.6.13",
-    "@vitest/coverage-v8": "^4.1.5",
-    "nock": "^14.0.12",
+    "@vitest/coverage-v8": "^4.1.9",
+    "nock": "^14.0.15",
     "node-fetch": "^2.7.0",
-    "typescript": "^6.0.2",
-    "vitest": "^4.1.5"
+    "typescript": "^6.0.3",
+    "vitest": "^4.1.9"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/VertaaUX/mcp-server.git"
+  },
+  "homepage": "https://github.com/VertaaUX/mcp-server#readme",
+  "bugs": {
+    "url": "https://github.com/VertaaUX/mcp-server/issues"
+  },
+  "engines": {
+    "node": ">=20"
   }
 }
